@@ -1,0 +1,13 @@
+ms-swift
+fastapi[standard]
+vllm>=0.5.1
+optimum
+bitsandbytes
+timm
+qwen_vl_utils
+qwen_omni_utils
+keye_vl_utils
+librosa
+icecream
+soundfile
+openai
