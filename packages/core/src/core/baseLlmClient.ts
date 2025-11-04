@@ -98,10 +98,11 @@ export class BaseLlmClient {
     };
 
     try {
+      const mappedModel = this.config.mapModelForOpenAICompat(model);
       const apiCall = () =>
         this.contentGenerator.generateContent(
           {
-            model,
+            model: mappedModel,
             config: requestConfig,
             contents,
           },
@@ -114,7 +115,7 @@ export class BaseLlmClient {
           return true; // Retry on empty response
         }
         try {
-          JSON.parse(this.cleanJsonResponse(text, model));
+          JSON.parse(this.cleanJsonResponse(text, mappedModel));
           return false;
         } catch (_e) {
           return true;
@@ -128,7 +129,7 @@ export class BaseLlmClient {
 
       // If we are here, the content is valid (not empty and parsable).
       return JSON.parse(
-        this.cleanJsonResponse(getResponseText(result)!.trim(), model),
+        this.cleanJsonResponse(getResponseText(result)!.trim(), mappedModel),
       );
     } catch (error) {
       if (abortSignal.aborted) {
@@ -166,7 +167,9 @@ export class BaseLlmClient {
       return [];
     }
     const embedModelParams: EmbedContentParameters = {
-      model: this.config.getEmbeddingModel(),
+      model: this.config.mapModelForOpenAICompat(
+        this.config.getEmbeddingModel(),
+      ),
       contents: texts,
     };
 

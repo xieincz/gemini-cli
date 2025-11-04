@@ -617,6 +617,57 @@ const SETTINGS_SCHEMA = {
         description: 'The Gemini model to use for conversations.',
         showInDialog: false,
       },
+      openaiCompatOverrides: {
+        type: 'object',
+        label: 'OpenAI Compatible Model Overrides',
+        category: 'Model',
+        requiresRestart: false,
+        default: undefined as
+          | {
+              pro?: string;
+              flash?: string;
+              flashLite?: string;
+              embedding?: string;
+            }
+          | undefined,
+        description:
+          'Model overrides when using OpenAI-compatible API. Leave empty to use Gemini defaults.',
+        showInDialog: false,
+        properties: {
+          pro: {
+            type: 'string',
+            label: 'Override for gemini-2.5-pro',
+            category: 'Model',
+            requiresRestart: false,
+            default: undefined as string | undefined,
+            showInDialog: false,
+          },
+          flash: {
+            type: 'string',
+            label: 'Override for gemini-2.5-flash',
+            category: 'Model',
+            requiresRestart: false,
+            default: undefined as string | undefined,
+            showInDialog: false,
+          },
+          flashLite: {
+            type: 'string',
+            label: 'Override for gemini-2.5-flash-lite',
+            category: 'Model',
+            requiresRestart: false,
+            default: undefined as string | undefined,
+            showInDialog: false,
+          },
+          embedding: {
+            type: 'string',
+            label: 'Override for gemini-embedding-001',
+            category: 'Model',
+            requiresRestart: false,
+            default: undefined as string | undefined,
+            showInDialog: false,
+          },
+        },
+      },
       maxSessionTurns: {
         type: 'number',
         label: 'Max Session Turns',

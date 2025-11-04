@@ -45,6 +45,7 @@ import { tokenLimit } from '../core/tokenLimits.js';
 import {
   DEFAULT_GEMINI_EMBEDDING_MODEL,
   DEFAULT_GEMINI_FLASH_MODEL,
+  DEFAULT_GEMINI_FLASH_LITE_MODEL,
   DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_MODEL_AUTO,
   DEFAULT_THINKING_MODE,
@@ -335,6 +336,12 @@ export interface ConfigParameters {
   hooks?: {
     [K in HookEventName]?: HookDefinition[];
   };
+  openaiCompatOverrides?: {
+    pro?: string;
+    flash?: string;
+    flashLite?: string;
+    embedding?: string;
+  };
 }
 
 export class Config {
@@ -441,6 +448,12 @@ export class Config {
   private readonly hooks:
     | { [K in HookEventName]?: HookDefinition[] }
     | undefined;
+  private openaiCompatOverrides?: {
+    pro?: string;
+    flash?: string;
+    flashLite?: string;
+    embedding?: string;
+  };
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -573,6 +586,7 @@ export class Config {
     this.retryFetchErrors = params.retryFetchErrors ?? false;
     this.disableYoloMode = params.disableYoloMode ?? false;
     this.hooks = params.hooks;
+    this.openaiCompatOverrides = params.openaiCompatOverrides;
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -745,6 +759,47 @@ export class Config {
       !!seatbeltProfile &&
       seatbeltProfile.startsWith('restrictive-')
     );
+  }
+
+  mapModelForOpenAICompat(model: string): string {
+    const authType = this.getContentGeneratorConfig()?.authType;
+    if (authType !== AuthType.OPENAI_COMPAT) {
+      return model;
+    }
+    if (!this.openaiCompatOverrides) {
+      return model;
+    }
+    if (model === DEFAULT_GEMINI_MODEL && this.openaiCompatOverrides.pro) {
+      return this.openaiCompatOverrides.pro;
+    }
+    if (
+      model === DEFAULT_GEMINI_FLASH_MODEL &&
+      this.openaiCompatOverrides.flash
+    ) {
+      return this.openaiCompatOverrides.flash;
+    }
+    if (
+      model === DEFAULT_GEMINI_FLASH_LITE_MODEL &&
+      this.openaiCompatOverrides.flashLite
+    ) {
+      return this.openaiCompatOverrides.flashLite;
+    }
+    if (
+      model === DEFAULT_GEMINI_EMBEDDING_MODEL &&
+      this.openaiCompatOverrides.embedding
+    ) {
+      return this.openaiCompatOverrides.embedding;
+    }
+    return model;
+  }
+
+  setOpenAICompatOverrides(overrides?: {
+    pro?: string;
+    flash?: string;
+    flashLite?: string;
+    embedding?: string;
+  }): void {
+    this.openaiCompatOverrides = overrides;
   }
 
   getTargetDir(): string {

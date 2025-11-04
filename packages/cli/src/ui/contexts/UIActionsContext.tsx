@@ -43,7 +43,7 @@ export interface UIActions {
   handleProQuotaChoice: (choice: 'auth' | 'continue') => void;
   setQueueErrorMessage: (message: string | null) => void;
   popAllMessages: (onPop: (messages: string | undefined) => void) => void;
-  handleApiKeySubmit: (apiKey: string) => Promise<void>;
+  handleApiKeySubmit: (apiKey: string, baseUrl?: string) => Promise<void>;
   handleApiKeyCancel: () => void;
 }
 

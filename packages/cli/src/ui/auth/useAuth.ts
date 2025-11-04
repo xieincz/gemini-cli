@@ -11,6 +11,8 @@ import {
   type Config,
   loadApiKey,
   debugLogger,
+  loadOpenAICompatApiKey,
+  loadOpenAICompatBaseUrl,
 } from '@google/gemini-cli-core';
 import { getErrorMessage } from '@google/gemini-cli-core';
 import { AuthState } from '../types.js';
@@ -28,7 +30,7 @@ export function validateAuthMethodWithSettings(
     return null;
   }
   // If using Gemini API key, we don't validate it here as we might need to prompt for it.
-  if (authType === AuthType.USE_GEMINI) {
+  if (authType === AuthType.USE_GEMINI || authType === AuthType.OPENAI_COMPAT) {
     return null;
   }
   return validateAuthMethod(authType);
@@ -83,6 +85,20 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
       if (authType === AuthType.USE_GEMINI) {
         const key = await reloadApiKey(); // Use the unified function
         if (!key) {
+          setAuthState(AuthState.AwaitingApiKeyInput);
+          return;
+        }
+      } else if (authType === AuthType.OPENAI_COMPAT) {
+        const storedKey = (await loadOpenAICompatApiKey()) ?? '';
+        const envKey = process.env['OPENAI_API_KEY'] ?? '';
+        const key = storedKey || envKey;
+        if (key) {
+          setApiKeyDefaultValue(key);
+        }
+        const storedBaseUrl = (await loadOpenAICompatBaseUrl()) ?? '';
+        const envBaseUrl = process.env['OPENAI_BASE_URL'] ?? '';
+        const baseUrl = storedBaseUrl || envBaseUrl;
+        if (!key || !baseUrl) {
           setAuthState(AuthState.AwaitingApiKeyInput);
           return;
         }

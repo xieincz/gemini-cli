@@ -612,8 +612,8 @@ export class GeminiClient {
 
       const apiCall = () => {
         const modelToUse = this.config.isInFallbackMode()
-          ? DEFAULT_GEMINI_FLASH_MODEL
-          : model;
+          ? this.config.mapModelForOpenAICompat(DEFAULT_GEMINI_FLASH_MODEL)
+          : this.config.mapModelForOpenAICompat(model);
         currentAttemptModel = modelToUse;
 
         return this.getContentGeneratorOrFail().generateContent(

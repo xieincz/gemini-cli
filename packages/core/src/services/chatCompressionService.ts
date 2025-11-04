@@ -138,9 +138,10 @@ export class ChatCompressionService {
       };
     }
 
+    const mappedModel = config.mapModelForOpenAICompat(model);
     const summaryResponse = await config.getContentGenerator().generateContent(
       {
-        model,
+        model: mappedModel,
         contents: [
           ...historyToCompress,
           {

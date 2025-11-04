@@ -45,6 +45,8 @@ import {
   recordExitFail,
   ShellExecutionService,
   saveApiKey,
+  saveOpenAICompatApiKey,
+  saveOpenAICompatBaseUrl,
   debugLogger,
   coreEvents,
   CoreEvent,
@@ -390,6 +392,15 @@ export const AppContainer = (props: AppContainerProps) => {
         settings.setValue(scope, 'security.auth.selectedType', authType);
 
         try {
+          if (authType === AuthType.OPENAI_COMPAT) {
+            (
+              config as {
+                setOpenAICompatOverrides: (overrides: unknown) => void;
+              }
+            ).setOpenAICompatOverrides(
+              settings.merged.model?.openaiCompatOverrides,
+            );
+          }
           await config.refreshAuth(authType);
           setAuthState(AuthState.Authenticated);
         } catch (e) {
@@ -418,7 +429,7 @@ Logging in with Google... Please restart Gemini CLI to continue.
   );
 
   const handleApiKeySubmit = useCallback(
-    async (apiKey: string) => {
+    async (apiKey: string, baseUrl?: string) => {
       try {
         if (!apiKey.trim() && apiKey.length > 1) {
           onAuthError(
@@ -427,9 +438,23 @@ Logging in with Google... Please restart Gemini CLI to continue.
           return;
         }
 
-        await saveApiKey(apiKey);
-        await reloadApiKey();
-        await config.refreshAuth(AuthType.USE_GEMINI);
+        const selectedType = settings.merged.security?.auth?.selectedType;
+        if (selectedType === AuthType.OPENAI_COMPAT) {
+          await saveOpenAICompatApiKey(apiKey);
+          if (baseUrl !== undefined) {
+            await saveOpenAICompatBaseUrl(baseUrl);
+          }
+          (
+            config as { setOpenAICompatOverrides: (overrides: unknown) => void }
+          ).setOpenAICompatOverrides(
+            settings.merged.model?.openaiCompatOverrides,
+          );
+          await config.refreshAuth(AuthType.OPENAI_COMPAT);
+        } else {
+          await saveApiKey(apiKey);
+          await reloadApiKey();
+          await config.refreshAuth(AuthType.USE_GEMINI);
+        }
         setAuthState(AuthState.Authenticated);
       } catch (e) {
         onAuthError(
@@ -437,7 +462,14 @@ Logging in with Google... Please restart Gemini CLI to continue.
         );
       }
     },
-    [setAuthState, onAuthError, reloadApiKey, config],
+    [
+      setAuthState,
+      onAuthError,
+      reloadApiKey,
+      config,
+      settings.merged.security?.auth?.selectedType,
+      settings.merged.model?.openaiCompatOverrides,
+    ],
   );
 
   const handleApiKeyCancel = useCallback(() => {

@@ -10,6 +10,8 @@ import { debugLogger } from '../utils/debugLogger.js';
 
 const KEYCHAIN_SERVICE_NAME = 'gemini-cli-api-key';
 const DEFAULT_API_KEY_ENTRY = 'default-api-key';
+const OPENAI_COMPAT_API_KEY_ENTRY = 'openai-compatible-api-key';
+const OPENAI_COMPAT_BASE_URL_ENTRY = 'openai-compatible-base-url';
 
 const storage = new HybridTokenStorage(KEYCHAIN_SERVICE_NAME);
 
@@ -73,5 +75,111 @@ export async function clearApiKey(): Promise<void> {
     await storage.deleteCredentials(DEFAULT_API_KEY_ENTRY);
   } catch (error: unknown) {
     debugLogger.error('Failed to clear API key from storage:', error);
+  }
+}
+
+export async function loadOpenAICompatApiKey(): Promise<string | null> {
+  try {
+    const credentials = await storage.getCredentials(
+      OPENAI_COMPAT_API_KEY_ENTRY,
+    );
+    if (credentials?.token?.accessToken) {
+      return credentials.token.accessToken;
+    }
+    return null;
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message === 'Token file does not exist'
+    ) {
+      return null;
+    }
+    debugLogger.error(
+      'Failed to load OpenAI-compatible API key from storage:',
+      error,
+    );
+    return null;
+  }
+}
+
+export async function saveOpenAICompatApiKey(
+  apiKey: string | null | undefined,
+): Promise<void> {
+  if (!apiKey || apiKey.trim() === '') {
+    await storage.deleteCredentials(OPENAI_COMPAT_API_KEY_ENTRY);
+    return;
+  }
+  const credentials: OAuthCredentials = {
+    serverName: OPENAI_COMPAT_API_KEY_ENTRY,
+    token: {
+      accessToken: apiKey,
+      tokenType: 'ApiKey',
+    },
+    updatedAt: Date.now(),
+  };
+  await storage.setCredentials(credentials);
+}
+
+export async function clearOpenAICompatApiKey(): Promise<void> {
+  try {
+    await storage.deleteCredentials(OPENAI_COMPAT_API_KEY_ENTRY);
+  } catch (error: unknown) {
+    debugLogger.error(
+      'Failed to clear OpenAI-compatible API key from storage:',
+      error,
+    );
+  }
+}
+
+export async function loadOpenAICompatBaseUrl(): Promise<string | null> {
+  try {
+    const credentials = await storage.getCredentials(
+      OPENAI_COMPAT_BASE_URL_ENTRY,
+    );
+    if (credentials?.token?.accessToken) {
+      return credentials.token.accessToken;
+    }
+    return null;
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message === 'Token file does not exist'
+    ) {
+      return null;
+    }
+    debugLogger.error(
+      'Failed to load OpenAI-compatible Base URL from storage:',
+      error,
+    );
+    return null;
+  }
+}
+
+export async function saveOpenAICompatBaseUrl(
+  baseUrl: string | null | undefined,
+): Promise<void> {
+  if (!baseUrl || baseUrl.trim() === '') {
+    await storage.deleteCredentials(OPENAI_COMPAT_BASE_URL_ENTRY);
+    return;
+  }
+  const credentials: OAuthCredentials = {
+    serverName: OPENAI_COMPAT_BASE_URL_ENTRY,
+    token: {
+      accessToken: baseUrl,
+      tokenType: 'ApiKey',
+    },
+    updatedAt: Date.now(),
+  };
+  await storage.setCredentials(credentials);
+}
+
+export async function clearOpenAICompatBaseUrl(): Promise<void> {
+  try {
+    await storage.deleteCredentials(OPENAI_COMPAT_BASE_URL_ENTRY);
+  } catch (error: unknown) {
+    debugLogger.error(
+      'Failed to clear OpenAI-compatible Base URL from storage:',
+      error,
+    );
   }
 }

@@ -58,6 +58,11 @@ export function AuthDialog({
       key: AuthType.USE_GEMINI,
     },
     {
+      label: '使用openai格式的api',
+      value: AuthType.OPENAI_COMPAT,
+      key: AuthType.OPENAI_COMPAT,
+    },
+    {
       label: 'Vertex AI',
       value: AuthType.USE_VERTEX_AI,
       key: AuthType.USE_VERTEX_AI,
@@ -92,6 +97,10 @@ export function AuthDialog({
       return item.value === AuthType.USE_GEMINI;
     }
 
+    if (process.env['OPENAI_API_KEY']) {
+      return item.value === AuthType.OPENAI_COMPAT;
+    }
+
     return item.value === AuthType.LOGIN_WITH_GOOGLE;
   });
   if (settings.merged.security?.auth?.enforcedType) {
@@ -119,7 +128,10 @@ Logging in with Google... Please restart Gemini CLI to continue.
           process.exit(0);
         }
       }
-      if (authType === AuthType.USE_GEMINI) {
+      if (
+        authType === AuthType.USE_GEMINI ||
+        authType === AuthType.OPENAI_COMPAT
+      ) {
         setAuthState(AuthState.AwaitingApiKeyInput);
         return;
       }

@@ -684,6 +684,8 @@ export async function loadCliConfig(
     blockedMcpServers,
     noBrowser: !!process.env['NO_BROWSER'],
     summarizeToolOutput: settings.model?.summarizeToolOutput,
+    // OpenAI-compatible model overrides
+    openaiCompatOverrides: settings.model?.openaiCompatOverrides,
     ideMode,
     compressionThreshold: settings.model?.compressionThreshold,
     folderTrust,

@@ -353,9 +353,8 @@ export class GeminiChat {
     prompt_id: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
     const apiCall = () => {
-      const modelToUse = getEffectiveModel(
-        this.config.isInFallbackMode(),
-        model,
+      const modelToUse = this.config.mapModelForOpenAICompat(
+        getEffectiveModel(this.config.isInFallbackMode(), model),
       );
 
       if (

@@ -50,9 +50,14 @@ export function TextInput({
         return;
       }
 
+      if (key.meta && !key.ctrl && key.name === '' && key.sequence) {
+        buffer.insert(key.sequence);
+        return;
+      }
+
       handleInput(key);
     },
-    [handleInput, onCancel, onSubmit, text],
+    [handleInput, onCancel, onSubmit, text, buffer],
   );
 
   useKeypress(handleKeyPress, { isActive: focus });
