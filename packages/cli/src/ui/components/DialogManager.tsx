@@ -15,6 +15,7 @@ import { SettingsDialog } from './SettingsDialog.js';
 import { AuthInProgress } from '../auth/AuthInProgress.js';
 import { AuthDialog } from '../auth/AuthDialog.js';
 import { ApiAuthDialog } from '../auth/ApiAuthDialog.js';
+import { OpenAIAuthDialog } from '../auth/OpenAIAuthDialog.js';
 import { EditorSettingsDialog } from './EditorSettingsDialog.js';
 import { PrivacyNotice } from '../privacy/PrivacyNotice.js';
 import { ProQuotaDialog } from './ProQuotaDialog.js';
@@ -159,6 +160,19 @@ export const DialogManager = ({
           onCancel={uiActions.handleApiKeyCancel}
           error={uiState.authError}
           defaultValue={uiState.apiKeyDefaultValue}
+        />
+      </Box>
+    );
+  }
+  if (uiState.isAwaitingOpenAIInput) {
+    return (
+      <Box flexDirection="column">
+        <OpenAIAuthDialog
+          onSubmit={uiActions.handleOpenAIAuthSubmit}
+          onCancel={uiActions.handleOpenAIAuthCancel}
+          error={uiState.authError}
+          defaultBaseUrl={uiState.openaiDefaultBaseUrl}
+          defaultApiKey={uiState.openaiDefaultApiKey}
         />
       </Box>
     );

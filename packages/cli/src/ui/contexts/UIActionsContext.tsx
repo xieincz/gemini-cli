@@ -45,6 +45,8 @@ export interface UIActions {
   popAllMessages: (onPop: (messages: string | undefined) => void) => void;
   handleApiKeySubmit: (apiKey: string) => Promise<void>;
   handleApiKeyCancel: () => void;
+  handleOpenAIAuthSubmit: (params: { baseUrl: string; apiKey: string }) => Promise<void>;
+  handleOpenAIAuthCancel: () => void;
 }
 
 export const UIActionsContext = createContext<UIActions | null>(null);

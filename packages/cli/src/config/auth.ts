@@ -36,5 +36,19 @@ export function validateAuthMethod(authMethod: string): string | null {
     return null;
   }
 
+  if (authMethod === AuthType.USE_OPENAI_FORMAT) {
+    const hasBaseUrl = !!process.env['OPENAI_BASE_URL'];
+    const hasApiKey = !!process.env['OPENAI_API_KEY'];
+    if (!hasBaseUrl || !hasApiKey) {
+      return (
+        'When using OpenAI-format API, you must specify:\n' +
+        '• OPENAI_BASE_URL environment variable.\n' +
+        '• OPENAI_API_KEY environment variable.\n' +
+        'Or set security.auth.openai.baseUrl and security.auth.openai.apiKey in .gemini settings.'
+      );
+    }
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 }

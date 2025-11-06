@@ -49,6 +49,9 @@ export interface UIState {
   isAuthDialogOpen: boolean;
   isAwaitingApiKeyInput: boolean;
   apiKeyDefaultValue?: string;
+  isAwaitingOpenAIInput: boolean;
+  openaiDefaultBaseUrl?: string;
+  openaiDefaultApiKey?: string;
   editorError: string | null;
   isEditorDialogOpen: boolean;
   showPrivacyNotice: boolean;

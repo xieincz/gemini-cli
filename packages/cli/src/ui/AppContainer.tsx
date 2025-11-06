@@ -368,6 +368,8 @@ export const AppContainer = (props: AppContainerProps) => {
     onAuthError,
     apiKeyDefaultValue,
     reloadApiKey,
+    openaiDefaultBaseUrl,
+    openaiDefaultApiKey,
   } = useAuthCommand(settings, config);
 
   const { proQuotaRequest, handleProQuotaChoice } = useQuotaAndFallback({
@@ -442,6 +444,36 @@ Logging in with Google... Please restart Gemini CLI to continue.
 
   const handleApiKeyCancel = useCallback(() => {
     // Go back to auth method selection
+    setAuthState(AuthState.Updating);
+  }, [setAuthState]);
+
+  const handleOpenAIAuthSubmit = useCallback(
+    async (params: { baseUrl: string; apiKey: string }) => {
+      try {
+        const baseUrl = params.baseUrl.trim();
+        const apiKey = params.apiKey.trim();
+
+        if (!baseUrl || !apiKey) {
+          onAuthError('Base URL and API key are required.');
+          return;
+        }
+
+        settings.setValue(SettingScope.User, 'security.auth.openai.baseUrl', baseUrl);
+        settings.setValue(SettingScope.User, 'security.auth.openai.apiKey', apiKey);
+
+        process.env['OPENAI_BASE_URL'] = baseUrl;
+        process.env['OPENAI_API_KEY'] = apiKey;
+
+        await config.refreshAuth(AuthType.USE_OPENAI_FORMAT);
+        setAuthState(AuthState.Authenticated);
+      } catch (e) {
+        onAuthError(`Failed to save OpenAI settings: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    [settings, config, setAuthState, onAuthError],
+  );
+
+  const handleOpenAIAuthCancel = useCallback(() => {
     setAuthState(AuthState.Updating);
   }, [setAuthState]);
 
@@ -1202,7 +1234,8 @@ Logging in with Google... Please restart Gemini CLI to continue.
     showIdeRestartPrompt ||
     !!proQuotaRequest ||
     isAuthDialogOpen ||
-    authState === AuthState.AwaitingApiKeyInput;
+    authState === AuthState.AwaitingApiKeyInput ||
+    authState === AuthState.AwaitingOpenAIInput;
 
   const pendingHistoryItems = useMemo(
     () => [...pendingSlashCommandHistoryItems, ...pendingGeminiHistoryItems],
@@ -1221,6 +1254,9 @@ Logging in with Google... Please restart Gemini CLI to continue.
       isAuthDialogOpen,
       isAwaitingApiKeyInput: authState === AuthState.AwaitingApiKeyInput,
       apiKeyDefaultValue,
+      isAwaitingOpenAIInput: authState === AuthState.AwaitingOpenAIInput,
+      openaiDefaultBaseUrl,
+      openaiDefaultApiKey,
       editorError,
       isEditorDialogOpen,
       showPrivacyNotice,
@@ -1377,6 +1413,8 @@ Logging in with Google... Please restart Gemini CLI to continue.
       embeddedShellFocused,
       showDebugProfiler,
       apiKeyDefaultValue,
+      openaiDefaultBaseUrl,
+      openaiDefaultApiKey,
       authState,
     ],
   );
@@ -1414,6 +1452,8 @@ Logging in with Google... Please restart Gemini CLI to continue.
       popAllMessages,
       handleApiKeySubmit,
       handleApiKeyCancel,
+      handleOpenAIAuthSubmit,
+      handleOpenAIAuthCancel,
     }),
     [
       handleThemeSelect,
@@ -1442,6 +1482,8 @@ Logging in with Google... Please restart Gemini CLI to continue.
       popAllMessages,
       handleApiKeySubmit,
       handleApiKeyCancel,
+      handleOpenAIAuthSubmit,
+      handleOpenAIAuthCancel,
     ],
   );
 

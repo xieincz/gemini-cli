@@ -28,7 +28,7 @@ export function validateAuthMethodWithSettings(
     return null;
   }
   // If using Gemini API key, we don't validate it here as we might need to prompt for it.
-  if (authType === AuthType.USE_GEMINI) {
+  if (authType === AuthType.USE_GEMINI || authType === AuthType.USE_OPENAI_FORMAT) {
     return null;
   }
   return validateAuthMethod(authType);
@@ -43,6 +43,8 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
   const [apiKeyDefaultValue, setApiKeyDefaultValue] = useState<
     string | undefined
   >(undefined);
+  const [openaiDefaultBaseUrl, setOpenaiDefaultBaseUrl] = useState<string | undefined>(undefined);
+  const [openaiDefaultApiKey, setOpenaiDefaultApiKey] = useState<string | undefined>(undefined);
 
   const onAuthError = useCallback(
     (error: string | null) => {
@@ -61,6 +63,18 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
     setApiKeyDefaultValue(key);
     return key; // Return the key for immediate use
   }, []);
+
+  const reloadOpenAIParams = useCallback(async () => {
+    const envBaseUrl = process.env['OPENAI_BASE_URL'] ?? '';
+    const envApiKey = process.env['OPENAI_API_KEY'] ?? '';
+    const settingsBaseUrl = settings.merged.security?.auth && (settings.merged.security.auth as any)?.openai?.baseUrl;
+    const settingsApiKey = settings.merged.security?.auth && (settings.merged.security.auth as any)?.openai?.apiKey;
+    const baseUrl = (settingsBaseUrl as string | undefined) || envBaseUrl;
+    const apiKey = (settingsApiKey as string | undefined) || envApiKey;
+    setOpenaiDefaultBaseUrl(baseUrl || '');
+    setOpenaiDefaultApiKey(apiKey || '');
+    return { baseUrl, apiKey };
+  }, [settings.merged.security?.auth]);
 
   useEffect(() => {
     (async () => {
@@ -84,6 +98,14 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
         const key = await reloadApiKey(); // Use the unified function
         if (!key) {
           setAuthState(AuthState.AwaitingApiKeyInput);
+          return;
+        }
+      }
+
+      if (authType === AuthType.USE_OPENAI_FORMAT) {
+        const { baseUrl, apiKey } = await reloadOpenAIParams();
+        if (!baseUrl || !apiKey) {
+          setAuthState(AuthState.AwaitingOpenAIInput);
           return;
         }
       }
@@ -133,5 +155,8 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
     onAuthError,
     apiKeyDefaultValue,
     reloadApiKey,
+    openaiDefaultBaseUrl,
+    openaiDefaultApiKey,
+    reloadOpenAIParams,
   };
 };
