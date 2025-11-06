@@ -45,6 +45,10 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
   >(undefined);
   const [openaiDefaultBaseUrl, setOpenaiDefaultBaseUrl] = useState<string | undefined>(undefined);
   const [openaiDefaultApiKey, setOpenaiDefaultApiKey] = useState<string | undefined>(undefined);
+  const [openaiDefaultModelPro, setOpenaiDefaultModelPro] = useState<string | undefined>(undefined);
+  const [openaiDefaultModelFlash, setOpenaiDefaultModelFlash] = useState<string | undefined>(undefined);
+  const [openaiDefaultModelFlashLite, setOpenaiDefaultModelFlashLite] = useState<string | undefined>(undefined);
+  const [openaiDefaultModelEmbedding, setOpenaiDefaultModelEmbedding] = useState<string | undefined>(undefined);
 
   const onAuthError = useCallback(
     (error: string | null) => {
@@ -67,13 +71,26 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
   const reloadOpenAIParams = useCallback(async () => {
     const envBaseUrl = process.env['OPENAI_BASE_URL'] ?? '';
     const envApiKey = process.env['OPENAI_API_KEY'] ?? '';
+    const envModelPro = process.env['OPENAI_MODEL_PRO'] ?? '';
+    const envModelFlash = process.env['OPENAI_MODEL_FLASH'] ?? '';
+    const envModelFlashLite = process.env['OPENAI_MODEL_FLASH_LITE'] ?? '';
+    const envModelEmbedding = process.env['OPENAI_MODEL_EMBEDDING'] ?? '';
     const settingsBaseUrl = settings.merged.security?.auth && (settings.merged.security.auth as any)?.openai?.baseUrl;
     const settingsApiKey = settings.merged.security?.auth && (settings.merged.security.auth as any)?.openai?.apiKey;
+    const settingsOverrides = settings.merged.security?.auth && (settings.merged.security.auth as any)?.openai?.modelOverrides;
     const baseUrl = (settingsBaseUrl as string | undefined) || envBaseUrl;
     const apiKey = (settingsApiKey as string | undefined) || envApiKey;
+    const modelPro = (settingsOverrides?.pro as string | undefined) || envModelPro;
+    const modelFlash = (settingsOverrides?.flash as string | undefined) || envModelFlash;
+    const modelFlashLite = (settingsOverrides?.flashLite as string | undefined) || envModelFlashLite;
+    const modelEmbedding = (settingsOverrides?.embedding as string | undefined) || envModelEmbedding;
     setOpenaiDefaultBaseUrl(baseUrl || '');
     setOpenaiDefaultApiKey(apiKey || '');
-    return { baseUrl, apiKey };
+    setOpenaiDefaultModelPro(modelPro || '');
+    setOpenaiDefaultModelFlash(modelFlash || '');
+    setOpenaiDefaultModelFlashLite(modelFlashLite || '');
+    setOpenaiDefaultModelEmbedding(modelEmbedding || '');
+    return { baseUrl, apiKey, modelPro, modelFlash, modelFlashLite, modelEmbedding };
   }, [settings.merged.security?.auth]);
 
   useEffect(() => {
@@ -103,7 +120,7 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
       }
 
       if (authType === AuthType.USE_OPENAI_FORMAT) {
-        const { baseUrl, apiKey } = await reloadOpenAIParams();
+        const { baseUrl, apiKey, modelPro, modelFlash, modelFlashLite, modelEmbedding } = await reloadOpenAIParams();
         if (!baseUrl || !apiKey) {
           setAuthState(AuthState.AwaitingOpenAIInput);
           return;
@@ -111,6 +128,10 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
         // 同步 Settings 到环境变量，避免首次启动缺失 env 导致核心层读取失败
         process.env['OPENAI_BASE_URL'] = baseUrl;
         process.env['OPENAI_API_KEY'] = apiKey;
+        if (modelPro) process.env['OPENAI_MODEL_PRO'] = modelPro;
+        if (modelFlash) process.env['OPENAI_MODEL_FLASH'] = modelFlash;
+        if (modelFlashLite) process.env['OPENAI_MODEL_FLASH_LITE'] = modelFlashLite;
+        if (modelEmbedding) process.env['OPENAI_MODEL_EMBEDDING'] = modelEmbedding;
       }
 
       const error = validateAuthMethodWithSettings(authType, settings);
@@ -160,6 +181,10 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
     reloadApiKey,
     openaiDefaultBaseUrl,
     openaiDefaultApiKey,
+    openaiDefaultModelPro,
+    openaiDefaultModelFlash,
+    openaiDefaultModelFlashLite,
+    openaiDefaultModelEmbedding,
     reloadOpenAIParams,
   };
 };

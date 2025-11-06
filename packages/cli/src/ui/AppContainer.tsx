@@ -370,6 +370,10 @@ export const AppContainer = (props: AppContainerProps) => {
     reloadApiKey,
     openaiDefaultBaseUrl,
     openaiDefaultApiKey,
+    openaiDefaultModelPro,
+    openaiDefaultModelFlash,
+    openaiDefaultModelFlashLite,
+    openaiDefaultModelEmbedding,
   } = useAuthCommand(settings, config);
 
   const { proQuotaRequest, handleProQuotaChoice } = useQuotaAndFallback({
@@ -448,10 +452,21 @@ Logging in with Google... Please restart Gemini CLI to continue.
   }, [setAuthState]);
 
   const handleOpenAIAuthSubmit = useCallback(
-    async (params: { baseUrl: string; apiKey: string }) => {
+    async (params: {
+      baseUrl: string;
+      apiKey: string;
+      modelPro?: string;
+      modelFlash?: string;
+      modelFlashLite?: string;
+      modelEmbedding?: string;
+    }) => {
       try {
         const baseUrl = params.baseUrl.trim();
         const apiKey = params.apiKey.trim();
+        const modelPro = (params.modelPro ?? '').trim();
+        const modelFlash = (params.modelFlash ?? '').trim();
+        const modelFlashLite = (params.modelFlashLite ?? '').trim();
+        const modelEmbedding = (params.modelEmbedding ?? '').trim();
 
         if (!baseUrl || !apiKey) {
           onAuthError('Base URL and API key are required.');
@@ -460,9 +475,21 @@ Logging in with Google... Please restart Gemini CLI to continue.
 
         settings.setValue(SettingScope.User, 'security.auth.openai.baseUrl', baseUrl);
         settings.setValue(SettingScope.User, 'security.auth.openai.apiKey', apiKey);
+        if (modelPro)
+          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.pro', modelPro);
+        if (modelFlash)
+          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.flash', modelFlash);
+        if (modelFlashLite)
+          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.flashLite', modelFlashLite);
+        if (modelEmbedding)
+          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.embedding', modelEmbedding);
 
         process.env['OPENAI_BASE_URL'] = baseUrl;
         process.env['OPENAI_API_KEY'] = apiKey;
+        if (modelPro) process.env['OPENAI_MODEL_PRO'] = modelPro;
+        if (modelFlash) process.env['OPENAI_MODEL_FLASH'] = modelFlash;
+        if (modelFlashLite) process.env['OPENAI_MODEL_FLASH_LITE'] = modelFlashLite;
+        if (modelEmbedding) process.env['OPENAI_MODEL_EMBEDDING'] = modelEmbedding;
 
         await config.refreshAuth(AuthType.USE_OPENAI_FORMAT);
         setAuthState(AuthState.Authenticated);
@@ -661,7 +688,7 @@ Logging in with Google... Please restart Gemini CLI to continue.
   );
 
   const onCancelSubmit = useCallback(() => {
-    cancelHandlerRef.current();
+    setTimeout(() => cancelHandlerRef.current(), 0);
   }, []);
 
   const {
@@ -1257,6 +1284,10 @@ Logging in with Google... Please restart Gemini CLI to continue.
       isAwaitingOpenAIInput: authState === AuthState.AwaitingOpenAIInput,
       openaiDefaultBaseUrl,
       openaiDefaultApiKey,
+      openaiDefaultModelPro,
+      openaiDefaultModelFlash,
+      openaiDefaultModelFlashLite,
+      openaiDefaultModelEmbedding,
       editorError,
       isEditorDialogOpen,
       showPrivacyNotice,
@@ -1415,6 +1446,10 @@ Logging in with Google... Please restart Gemini CLI to continue.
       apiKeyDefaultValue,
       openaiDefaultBaseUrl,
       openaiDefaultApiKey,
+      openaiDefaultModelPro,
+      openaiDefaultModelFlash,
+      openaiDefaultModelFlashLite,
+      openaiDefaultModelEmbedding,
       authState,
     ],
   );

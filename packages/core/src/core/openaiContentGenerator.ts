@@ -45,6 +45,28 @@ export class OpenAIContentGenerator implements ContentGenerator {
     this.cfg = { baseUrl, apiKey };
   }
 
+  private mapModelName(model: string | undefined): string | undefined {
+    if (!model) return model;
+    const m = model.toLowerCase();
+    const envPro = process.env['OPENAI_MODEL_PRO'];
+    const envFlash = process.env['OPENAI_MODEL_FLASH'];
+    const envFlashLite = process.env['OPENAI_MODEL_FLASH_LITE'];
+    const envEmbedding = process.env['OPENAI_MODEL_EMBEDDING'];
+    if (m.includes('embedding') || m === 'gemini-embedding-001') {
+      return envEmbedding?.trim() || model;
+    }
+    if (m.includes('flash-lite')) {
+      return envFlashLite?.trim() || model;
+    }
+    if (m.includes('flash')) {
+      return envFlash?.trim() || model;
+    }
+    if (m.includes('pro')) {
+      return envPro?.trim() || model;
+    }
+    return model;
+  }
+
   async generateContent(
     request: GenerateContentParameters,
     _userPromptId: string,
@@ -54,7 +76,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
     }
     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
     const body = {
-      model: request.model,
+      model: this.mapModelName(request.model),
       messages: toOpenAIMessages(request.contents as Content[], (request.config as any)?.systemInstruction as string | undefined),
       temperature: (request.config as any)?.temperature ?? 0,
       top_p: (request.config as any)?.topP ?? 1,
@@ -83,7 +105,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
           content: { role: 'model', parts: text ? [{ text }] : [] },
         },
       ],
-      modelVersion: request.model,
+      modelVersion: body.model ?? request.model,
       responseId: data?.id,
       usageMetadata: data?.usage && {
         promptTokenCount: data.usage.prompt_tokens,
@@ -124,7 +146,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
         Authorization: `Bearer ${this.cfg.apiKey}`,
       },
       body: JSON.stringify({
-        model: req.model,
+        model: this.mapModelName(req.model),
         input: req.contents,
       }),
     });

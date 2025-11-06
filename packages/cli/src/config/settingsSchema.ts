@@ -1143,6 +1143,58 @@ const SETTINGS_SCHEMA = {
                 description: 'OpenAI API key.',
                 showInDialog: false,
               },
+              modelOverrides: {
+                type: 'object',
+                label: 'Model Overrides',
+                category: 'Security',
+                requiresRestart: true,
+                default: {},
+                description:
+                  'Override OpenAI model names when using Gemini-equivalent models.',
+                showInDialog: false,
+                properties: {
+                  pro: {
+                    type: 'string',
+                    label: 'Pro Model Override',
+                    category: 'Security',
+                    requiresRestart: true,
+                    default: undefined as string | undefined,
+                    description:
+                      'Replacement model for Gemini Pro (e.g., gpt-4o).',
+                    showInDialog: false,
+                  },
+                  flash: {
+                    type: 'string',
+                    label: 'Flash Model Override',
+                    category: 'Security',
+                    requiresRestart: true,
+                    default: undefined as string | undefined,
+                    description:
+                      'Replacement model for Gemini Flash (e.g., gpt-4o-mini).',
+                    showInDialog: false,
+                  },
+                  flashLite: {
+                    type: 'string',
+                    label: 'Flash Lite Model Override',
+                    category: 'Security',
+                    requiresRestart: true,
+                    default: undefined as string | undefined,
+                    description:
+                      'Replacement model for Gemini Flash Lite.',
+                    showInDialog: false,
+                  },
+                  embedding: {
+                    type: 'string',
+                    label: 'Embedding Model Override',
+                    category: 'Security',
+                    requiresRestart: true,
+                    default: undefined as string | undefined,
+                    description:
+                      'Replacement model for Gemini Embedding (e.g., text-embedding-3-large).',
+                    showInDialog: false,
+                  },
+                },
+              },
             },
           },
         },

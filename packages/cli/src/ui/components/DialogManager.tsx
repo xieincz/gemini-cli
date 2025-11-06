@@ -164,19 +164,23 @@ export const DialogManager = ({
       </Box>
     );
   }
-  if (uiState.isAwaitingOpenAIInput) {
-    return (
-      <Box flexDirection="column">
-        <OpenAIAuthDialog
-          onSubmit={uiActions.handleOpenAIAuthSubmit}
-          onCancel={uiActions.handleOpenAIAuthCancel}
-          error={uiState.authError}
-          defaultBaseUrl={uiState.openaiDefaultBaseUrl}
-          defaultApiKey={uiState.openaiDefaultApiKey}
-        />
-      </Box>
-    );
-  }
+      if (uiState.isAwaitingOpenAIInput) {
+        return (
+          <Box flexDirection="column">
+            <OpenAIAuthDialog
+              onSubmit={uiActions.handleOpenAIAuthSubmit}
+              onCancel={uiActions.handleOpenAIAuthCancel}
+              error={uiState.authError}
+              defaultBaseUrl={uiState.openaiDefaultBaseUrl}
+              defaultApiKey={uiState.openaiDefaultApiKey}
+              defaultModelPro={uiState.openaiDefaultModelPro}
+              defaultModelFlash={uiState.openaiDefaultModelFlash}
+              defaultModelFlashLite={uiState.openaiDefaultModelFlashLite}
+              defaultModelEmbedding={uiState.openaiDefaultModelEmbedding}
+            />
+          </Box>
+        );
+      }
   if (uiState.isAuthDialogOpen) {
     return (
       <Box flexDirection="column">

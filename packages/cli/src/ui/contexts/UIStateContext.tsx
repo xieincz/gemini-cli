@@ -52,6 +52,10 @@ export interface UIState {
   isAwaitingOpenAIInput: boolean;
   openaiDefaultBaseUrl?: string;
   openaiDefaultApiKey?: string;
+  openaiDefaultModelPro?: string;
+  openaiDefaultModelFlash?: string;
+  openaiDefaultModelFlashLite?: string;
+  openaiDefaultModelEmbedding?: string;
   editorError: string | null;
   isEditorDialogOpen: boolean;
   showPrivacyNotice: boolean;
