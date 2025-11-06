@@ -29,6 +29,7 @@ import {
   logApiResponse,
 } from '../telemetry/loggers.js';
 import type { ContentGenerator } from './contentGenerator.js';
+import { AuthType } from './contentGenerator.js';
 import { CodeAssistServer } from '../code_assist/server.js';
 import { toContents } from '../code_assist/converter.js';
 import { isStructuredError } from '../utils/quotaErrorDetection.js';
@@ -91,7 +92,23 @@ export class LoggingContentGenerator implements ContentGenerator {
       }
     }
 
-    // Case 3: Default to the public Gemini API endpoint.
+    // Case 3: Using an OpenAI-format API.
+    if (genConfig?.authType === AuthType.USE_OPENAI_FORMAT) {
+      const baseUrl = genConfig.baseUrl || process.env['OPENAI_BASE_URL'] || 'https://api.openai.com';
+      try {
+        const url = new URL(baseUrl);
+        const port = url.port
+          ? parseInt(url.port, 10)
+          : url.protocol === 'https:'
+            ? 443
+            : 80;
+        return { address: url.hostname, port };
+      } catch {
+        return { address: 'api.openai.com', port: 443 };
+      }
+    }
+
+    // Case 4: Default to the public Gemini API endpoint.
     // This is used when an API key is provided but not for Vertex AI.
     return { address: `generativelanguage.googleapis.com`, port: 443 };
   }

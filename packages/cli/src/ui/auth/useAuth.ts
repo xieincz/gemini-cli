@@ -108,6 +108,9 @@ export const useAuthCommand = (settings: LoadedSettings, config: Config) => {
           setAuthState(AuthState.AwaitingOpenAIInput);
           return;
         }
+        // 同步 Settings 到环境变量，避免首次启动缺失 env 导致核心层读取失败
+        process.env['OPENAI_BASE_URL'] = baseUrl;
+        process.env['OPENAI_API_KEY'] = apiKey;
       }
 
       const error = validateAuthMethodWithSettings(authType, settings);

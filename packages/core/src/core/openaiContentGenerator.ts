@@ -38,12 +38,20 @@ function toOpenAIMessages(contents: Content[], system?: string): OpenAIMessage[]
 }
 
 export class OpenAIContentGenerator implements ContentGenerator {
-  constructor(private readonly cfg: { baseUrl: string; apiKey: string }) {}
+  private readonly cfg: { baseUrl: string; apiKey: string };
+  constructor(cfg: { baseUrl?: string; apiKey?: string }) {
+    const baseUrl = (cfg.baseUrl && cfg.baseUrl.trim()) || 'https://api.openai.com';
+    const apiKey = (cfg.apiKey && cfg.apiKey.trim()) || '';
+    this.cfg = { baseUrl, apiKey };
+  }
 
   async generateContent(
     request: GenerateContentParameters,
     _userPromptId: string,
   ): Promise<GenerateContentResponse> {
+    if (!this.cfg.apiKey) {
+      throw new Error('OpenAI API key missing. Please set OPENAI_API_KEY.');
+    }
     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
     const body = {
       model: request.model,
@@ -61,7 +69,11 @@ export class OpenAIContentGenerator implements ContentGenerator {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      throw new Error(`OpenAI API error: ${res.status} ${res.statusText}`);
+      let errText = '';
+      try {
+        errText = await res.text();
+      } catch {}
+      throw new Error(`OpenAI API error: ${res.status} ${res.statusText} ${errText}`);
     }
     const data = await res.json();
     const text: string = data?.choices?.[0]?.message?.content ?? '';
@@ -101,6 +113,9 @@ export class OpenAIContentGenerator implements ContentGenerator {
   }
 
   async embedContent(req: EmbedContentParameters): Promise<EmbedContentResponse> {
+    if (!this.cfg.apiKey) {
+      throw new Error('OpenAI API key missing. Please set OPENAI_API_KEY.');
+    }
     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/v1/embeddings`;
     const res = await fetch(url, {
       method: 'POST',
@@ -114,7 +129,11 @@ export class OpenAIContentGenerator implements ContentGenerator {
       }),
     });
     if (!res.ok) {
-      throw new Error(`OpenAI Embeddings error: ${res.status} ${res.statusText}`);
+      let errText = '';
+      try {
+        errText = await res.text();
+      } catch {}
+      throw new Error(`OpenAI Embeddings error: ${res.status} ${res.statusText} ${errText}`);
     }
     const data = await res.json();
     const vectors = (data?.data || []).map((e: any) => e.embedding || e.vector || []);
