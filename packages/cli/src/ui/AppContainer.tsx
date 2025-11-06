@@ -368,6 +368,7 @@ export const AppContainer = (props: AppContainerProps) => {
     onAuthError,
     apiKeyDefaultValue,
     reloadApiKey,
+    reloadOpenAIParams,
     openaiDefaultBaseUrl,
     openaiDefaultApiKey,
     openaiDefaultModelPro,
@@ -473,28 +474,56 @@ Logging in with Google... Please restart Gemini CLI to continue.
           return;
         }
 
-        settings.setValue(SettingScope.User, 'security.auth.openai.baseUrl', baseUrl);
-        settings.setValue(SettingScope.User, 'security.auth.openai.apiKey', apiKey);
+        settings.setValue(
+          SettingScope.User,
+          'security.auth.openai.baseUrl',
+          baseUrl,
+        );
+        settings.setValue(
+          SettingScope.User,
+          'security.auth.openai.apiKey',
+          apiKey,
+        );
         if (modelPro)
-          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.pro', modelPro);
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.openai.modelOverrides.pro',
+            modelPro,
+          );
         if (modelFlash)
-          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.flash', modelFlash);
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.openai.modelOverrides.flash',
+            modelFlash,
+          );
         if (modelFlashLite)
-          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.flashLite', modelFlashLite);
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.openai.modelOverrides.flashLite',
+            modelFlashLite,
+          );
         if (modelEmbedding)
-          settings.setValue(SettingScope.User, 'security.auth.openai.modelOverrides.embedding', modelEmbedding);
+          settings.setValue(
+            SettingScope.User,
+            'security.auth.openai.modelOverrides.embedding',
+            modelEmbedding,
+          );
 
         process.env['OPENAI_BASE_URL'] = baseUrl;
         process.env['OPENAI_API_KEY'] = apiKey;
         if (modelPro) process.env['OPENAI_MODEL_PRO'] = modelPro;
         if (modelFlash) process.env['OPENAI_MODEL_FLASH'] = modelFlash;
-        if (modelFlashLite) process.env['OPENAI_MODEL_FLASH_LITE'] = modelFlashLite;
-        if (modelEmbedding) process.env['OPENAI_MODEL_EMBEDDING'] = modelEmbedding;
+        if (modelFlashLite)
+          process.env['OPENAI_MODEL_FLASH_LITE'] = modelFlashLite;
+        if (modelEmbedding)
+          process.env['OPENAI_MODEL_EMBEDDING'] = modelEmbedding;
 
         await config.refreshAuth(AuthType.USE_OPENAI_FORMAT);
         setAuthState(AuthState.Authenticated);
       } catch (e) {
-        onAuthError(`Failed to save OpenAI settings: ${e instanceof Error ? e.message : String(e)}`);
+        onAuthError(
+          `Failed to save OpenAI settings: ${e instanceof Error ? e.message : String(e)}`,
+        );
       }
     },
     [settings, config, setAuthState, onAuthError],
@@ -503,6 +532,15 @@ Logging in with Google... Please restart Gemini CLI to continue.
   const handleOpenAIAuthCancel = useCallback(() => {
     setAuthState(AuthState.Updating);
   }, [setAuthState]);
+
+  // Reload defaults when entering input dialogs to avoid stale values
+  useEffect(() => {
+    if (authState === AuthState.AwaitingOpenAIInput) {
+      void reloadOpenAIParams();
+    } else if (authState === AuthState.AwaitingApiKeyInput) {
+      void reloadApiKey();
+    }
+  }, [authState, reloadOpenAIParams, reloadApiKey]);
 
   // Sync user tier from config when authentication changes
   useEffect(() => {
