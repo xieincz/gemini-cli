@@ -11,6 +11,7 @@ import { TextInput } from '../components/shared/TextInput.js';
 import { useTextBuffer } from '../components/shared/text-buffer.js';
 import { useUIState } from '../contexts/UIStateContext.js';
 import { useKeypress } from '../hooks/useKeypress.js';
+import { checkExhaustive } from '../../utils/checks.js';
 
 interface OpenAIAuthDialogProps {
   onSubmit: (params: {
@@ -100,7 +101,12 @@ export function OpenAIAuthDialog({
   });
 
   const [focused, setFocused] = React.useState<
-    'baseUrl' | 'apiKey' | 'modelPro' | 'modelFlash' | 'modelFlashLite' | 'modelEmbedding'
+    | 'baseUrl'
+    | 'apiKey'
+    | 'modelPro'
+    | 'modelFlash'
+    | 'modelFlashLite'
+    | 'modelEmbedding'
   >('baseUrl');
 
   const submit = () => {
@@ -131,6 +137,8 @@ export function OpenAIAuthDialog({
               return 'modelEmbedding';
             case 'modelEmbedding':
               return 'baseUrl';
+            default:
+              checkExhaustive(prev);
           }
         });
         return;
@@ -146,22 +154,55 @@ export function OpenAIAuthDialog({
   );
 
   return (
-    <Box borderStyle="round" borderColor={theme.border.focused} flexDirection="column" padding={1} width="100%">
-      <Text bold color={theme.text.primary}>Configure OpenAI-format API</Text>
+    <Box
+      borderStyle="round"
+      borderColor={theme.border.focused}
+      flexDirection="column"
+      padding={1}
+      width="100%"
+    >
+      <Text bold color={theme.text.primary}>
+        Configure OpenAI-format API
+      </Text>
       <Box marginTop={1} flexDirection="column">
-        <Text color={theme.text.primary}>Enter the Base URL and API key for an OpenAI-compatible API.</Text>
-        <Text color={theme.text.secondary}>Values can also be read from environment variables or .gemini settings.</Text>
+        <Text color={theme.text.primary}>
+          Enter the Base URL and API key for an OpenAI-compatible API.
+        </Text>
+        <Text color={theme.text.secondary}>
+          Values can also be read from environment variables or .gemini
+          settings.
+        </Text>
       </Box>
       <Box marginTop={1} flexDirection="column">
         <Text color={theme.text.primary}>Base URL</Text>
-        <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-          <TextInput buffer={baseUrlBuffer} onSubmit={submit} onCancel={onCancel} placeholder="e.g. https://api.openai.com" focus={focused === 'baseUrl'} />
+        <Box
+          borderStyle="round"
+          borderColor={theme.border.default}
+          paddingX={1}
+        >
+          <TextInput
+            buffer={baseUrlBuffer}
+            onSubmit={submit}
+            onCancel={onCancel}
+            placeholder="e.g. https://api.openai.com"
+            focus={focused === 'baseUrl'}
+          />
         </Box>
       </Box>
       <Box marginTop={1} flexDirection="column">
         <Text color={theme.text.primary}>API Key</Text>
-        <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-          <TextInput buffer={apiKeyBuffer} onSubmit={submit} onCancel={onCancel} placeholder="Paste your API key here" focus={focused === 'apiKey'} />
+        <Box
+          borderStyle="round"
+          borderColor={theme.border.default}
+          paddingX={1}
+        >
+          <TextInput
+            buffer={apiKeyBuffer}
+            onSubmit={submit}
+            onCancel={onCancel}
+            placeholder="Paste your API key here"
+            focus={focused === 'apiKey'}
+          />
         </Box>
       </Box>
       <Box marginTop={1} flexDirection="column">
@@ -171,26 +212,66 @@ export function OpenAIAuthDialog({
         </Text>
         <Box marginTop={1} flexDirection="column">
           <Text color={theme.text.primary}>Pro</Text>
-          <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-            <TextInput buffer={proModelBuffer} onSubmit={submit} onCancel={onCancel} placeholder="e.g. gpt-4o" focus={focused === 'modelPro'} />
+          <Box
+            borderStyle="round"
+            borderColor={theme.border.default}
+            paddingX={1}
+          >
+            <TextInput
+              buffer={proModelBuffer}
+              onSubmit={submit}
+              onCancel={onCancel}
+              placeholder="e.g. gpt-4o"
+              focus={focused === 'modelPro'}
+            />
           </Box>
         </Box>
         <Box marginTop={1} flexDirection="column">
           <Text color={theme.text.primary}>Flash</Text>
-          <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-            <TextInput buffer={flashModelBuffer} onSubmit={submit} onCancel={onCancel} placeholder="e.g. gpt-4o-mini" focus={focused === 'modelFlash'} />
+          <Box
+            borderStyle="round"
+            borderColor={theme.border.default}
+            paddingX={1}
+          >
+            <TextInput
+              buffer={flashModelBuffer}
+              onSubmit={submit}
+              onCancel={onCancel}
+              placeholder="e.g. gpt-4o-mini"
+              focus={focused === 'modelFlash'}
+            />
           </Box>
         </Box>
         <Box marginTop={1} flexDirection="column">
           <Text color={theme.text.primary}>Flash Lite</Text>
-          <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-            <TextInput buffer={flashLiteModelBuffer} onSubmit={submit} onCancel={onCancel} placeholder="Model name" focus={focused === 'modelFlashLite'} />
+          <Box
+            borderStyle="round"
+            borderColor={theme.border.default}
+            paddingX={1}
+          >
+            <TextInput
+              buffer={flashLiteModelBuffer}
+              onSubmit={submit}
+              onCancel={onCancel}
+              placeholder="Model name"
+              focus={focused === 'modelFlashLite'}
+            />
           </Box>
         </Box>
         <Box marginTop={1} flexDirection="column">
           <Text color={theme.text.primary}>Embedding</Text>
-          <Box borderStyle="round" borderColor={theme.border.default} paddingX={1}>
-            <TextInput buffer={embeddingModelBuffer} onSubmit={submit} onCancel={onCancel} placeholder="e.g. text-embedding-3-large" focus={focused === 'modelEmbedding'} />
+          <Box
+            borderStyle="round"
+            borderColor={theme.border.default}
+            paddingX={1}
+          >
+            <TextInput
+              buffer={embeddingModelBuffer}
+              onSubmit={submit}
+              onCancel={onCancel}
+              placeholder="e.g. text-embedding-3-large"
+              focus={focused === 'modelEmbedding'}
+            />
           </Box>
         </Box>
       </Box>
@@ -200,7 +281,9 @@ export function OpenAIAuthDialog({
         </Box>
       )}
       <Box marginTop={1}>
-        <Text color={theme.text.secondary}>(Tab to switch, Enter to submit, Esc to cancel)</Text>
+        <Text color={theme.text.secondary}>
+          (Tab to switch, Enter to submit, Esc to cancel)
+        </Text>
       </Box>
     </Box>
   );

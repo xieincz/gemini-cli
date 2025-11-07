@@ -20,12 +20,13 @@ type OpenAIMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 
 function toText(parts: Part[] | undefined): string {
   if (!parts || parts.length === 0) return '';
-  return parts
-    .map((p) => (typeof p.text === 'string' ? p.text : ''))
-    .join('');
+  return parts.map((p) => (typeof p.text === 'string' ? p.text : '')).join('');
 }
 
-function toOpenAIMessages(contents: Content[], system?: string): OpenAIMessage[] {
+function toOpenAIMessages(
+  contents: Content[],
+  system?: string,
+): OpenAIMessage[] {
   const msgs: OpenAIMessage[] = [];
   if (system && system.trim()) {
     msgs.push({ role: 'system', content: system });
@@ -40,7 +41,8 @@ function toOpenAIMessages(contents: Content[], system?: string): OpenAIMessage[]
 export class OpenAIContentGenerator implements ContentGenerator {
   private readonly cfg: { baseUrl: string; apiKey: string };
   constructor(cfg: { baseUrl?: string; apiKey?: string }) {
-    const baseUrl = (cfg.baseUrl && cfg.baseUrl.trim()) || 'https://api.openai.com';
+    const baseUrl =
+      (cfg.baseUrl && cfg.baseUrl.trim()) || 'https://api.openai.com';
     const apiKey = (cfg.apiKey && cfg.apiKey.trim()) || '';
     this.cfg = { baseUrl, apiKey };
   }
@@ -75,11 +77,21 @@ export class OpenAIContentGenerator implements ContentGenerator {
       throw new Error('OpenAI API key missing. Please set OPENAI_API_KEY.');
     }
     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
+    const cfg = request.config as
+      | Partial<{
+          systemInstruction: string;
+          temperature: number;
+          topP: number;
+        }>
+      | undefined;
     const body = {
       model: this.mapModelName(request.model),
-      messages: toOpenAIMessages(request.contents as Content[], (request.config as any)?.systemInstruction as string | undefined),
-      temperature: (request.config as any)?.temperature ?? 0,
-      top_p: (request.config as any)?.topP ?? 1,
+      messages: toOpenAIMessages(
+        request.contents as Content[],
+        cfg?.systemInstruction as string | undefined,
+      ),
+      temperature: cfg?.temperature ?? 0,
+      top_p: cfg?.topP ?? 1,
       stream: false,
     };
     const res = await fetch(url, {
@@ -94,8 +106,12 @@ export class OpenAIContentGenerator implements ContentGenerator {
       let errText = '';
       try {
         errText = await res.text();
-      } catch {}
-      throw new Error(`OpenAI API error: ${res.status} ${res.statusText} ${errText}`);
+      } catch {
+        errText = '';
+      }
+      throw new Error(
+        `OpenAI API error: ${res.status} ${res.statusText} ${errText}`,
+      );
     }
     const data = await res.json();
     const text: string = data?.choices?.[0]?.message?.content ?? '';
@@ -134,7 +150,9 @@ export class OpenAIContentGenerator implements ContentGenerator {
     return { totalTokens: count } as CountTokensResponse;
   }
 
-  async embedContent(req: EmbedContentParameters): Promise<EmbedContentResponse> {
+  async embedContent(
+    req: EmbedContentParameters,
+  ): Promise<EmbedContentResponse> {
     if (!this.cfg.apiKey) {
       throw new Error('OpenAI API key missing. Please set OPENAI_API_KEY.');
     }
@@ -154,11 +172,20 @@ export class OpenAIContentGenerator implements ContentGenerator {
       let errText = '';
       try {
         errText = await res.text();
-      } catch {}
-      throw new Error(`OpenAI Embeddings error: ${res.status} ${res.statusText} ${errText}`);
+      } catch {
+        errText = '';
+      }
+      throw new Error(
+        `OpenAI Embeddings error: ${res.status} ${res.statusText} ${errText}`,
+      );
     }
     const data = await res.json();
-    const vectors = (data?.data || []).map((e: any) => e.embedding || e.vector || []);
-    return { embeddings: vectors.map((v: number[]) => ({ values: v })) } as EmbedContentResponse;
+    const vectors = (data?.data || []).map(
+      (e: { embedding?: number[]; vector?: number[] }) =>
+        e.embedding || e.vector || [],
+    );
+    return {
+      embeddings: vectors.map((v: number[]) => ({ values: v })),
+    } as EmbedContentResponse;
   }
 }
